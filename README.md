@@ -1,4 +1,4 @@
-# PTT-Beauty-crawler
+# PTT-crawler-on-Beauty
 * Download hottie image of PTT Beauty board 
 * You can set up LaudCount(推) and range of time.
 * For example:
