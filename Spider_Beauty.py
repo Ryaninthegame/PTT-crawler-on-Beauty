@@ -7,68 +7,68 @@ from collections import Counter
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
-def get_r(fun_url, fun_stream):
+def getRequest(url, fun_stream):
     while(1):
         try:
-            fun_r=requests.get(fun_url, stream=fun_stream)
+            r = requests.get(url, stream=fun_stream)
             break
         except:
-            print('********sleep********')
+            print("-----------------------------sleep")
             time.sleep(10)
-    return fun_r
+    return r
 
-def generate_file(fun_name):
-    file_name='./'+fun_name
+def generateFile(folderName):
+    path = './'+folderName
     try:
-        os.mkdir(file_name)
-        print('generate file success')
+        os.mkdir(path)
+        print("generate file success")
     except:
-        print(file_name, 'file exist')
-    return file_name
+        print(folderName, "file exist")
+    return path
 
-def get_page(fun_day_begin, fun_day_end, fun_laud):
-    flag, page, page_list = 1, 1, []
+def getArticle(dayBegin, dayEnd, laud):
+    flag, page, meetArticle = 1, 1, []
     while(flag):
-        if page==1:url='https://www.pttweb.cc/bbs/beauty/page'
-        else:url=next_url
-        r=get_r(url, False)
-        soup=BeautifulSoup(r.text, "html.parser")
-        article_list=soup.find_all('div', class_='e7-container')
-        for index in range(len(article_list)):
+        if page == 1 : url = "https://www.pttweb.cc/bbs/Beauty/page"
+        else : url = nextURL
+        r = getRequest(url, False)
+        soup = BeautifulSoup(r.text, "html.parser")
+        articleSet = soup.find_all('div', class_='e7-container')
+        for i in range(len(articleSet)):
             try:
-                push=article_list[index].find_all('div', class_='e7-recommendScore')[0].text
-                time_=article_list[index].find_all('span', class_='text-no-wrap')[1].text[:-6]
-                if int(push)>=fun_laud and fun_day_begin<=parse(time_)<=fun_day_end:
-                    page_list.append(article_list[index].find('div', class_='e7-right-top-container').find('a').get('href'))
-                elif fun_day_begin>parse(time_):
+                pushScore = articleSet[i].find_all('div', class_='e7-recommendScore')[0].text
+                date = articleSet[i].find_all('span', class_='text-no-wrap')[1].text[:-6]
+                if int(pushScore)>=laud and dayBegin<=parse(date)<=dayEnd:
+                    meetArticle.append(articleSet[i].find('div', class_='e7-right-top-container').find('a').get('href'))
+                elif dayBegin>parse(date):
                     flag=0
                     break
             except:
                 pass
-        next_url='https://www.pttweb.cc'+soup.find_all('a', string='下一頁')[0].get('href')
-        page+=1
-    return page_list
+        nextURL = 'https://www.pttweb.cc'+soup.find_all('a', string='下一頁')[0].get('href')
+        page += 1
+    return meetArticle
 
-def save_image(fun_page_list, fun_file_name):
-    for page in fun_page_list:
-        url='https://www.pttweb.cc'+page
-        r=get_r(url, False)
-        soup=BeautifulSoup(r.text, "html.parser")
-        content=soup.find_all('a', class_='externalHref')[:-1]
-        title=soup.find('span', itemprop='headline').text
+def saveImage(article, folder):
+    for page in article:
+        url = 'https://www.pttweb.cc'+page
+        r = getRequest(url, False)
+        soup = BeautifulSoup(r.text, "html.parser")
+        content = soup.find_all('a', class_='externalHref')[:-1]
+        title = soup.find('span', itemprop='headline').text
         title.index('[')
-        title=title[25:]
-        for item_index in range(len(content)):
-            img_url=content[item_index].get('href')
-            if 'https://i.imgur' in img_url:
-                r=get_r(img_url, True)
-                img_name=fun_file_name+'\\'+title+'_'+str(item_index)+'.jpg'
-                with open(img_name, 'wb+') as out_file:
+        title = title[25:]
+        for i in range(len(content)):
+            imageURL = content[i].get('href')
+            if 'https://i.imgur' in imageURL:
+                r = getRequest(imageURL, True)
+                imageName = folder+'\\'+title+'_'+str(i)+'.jpg'
+                with open(imageName, 'wb+') as out_file:
                     shutil.copyfileobj(r.raw, out_file)
 
 if __name__=='__main__':
-    file_name='your_file_name'
-    day_begin, day_end, laud = parse("2021-02-24"), parse("2021-02-25"), 30
-    file_=generate_file(file_name)
-    list_=get_page(day_begin, day_end, laud)
-    save_image(list_, file_)
+    _folderName = "your_file_name"
+    _dayBegin, _dayEnd, _laud = parse("2021-06-14"), parse("2021-06-15"), 30
+    _folder = generateFile(_folderName)
+    _article = getArticle(_dayBegin, _dayEnd, _laud)
+    saveImage(_article, _folder)
